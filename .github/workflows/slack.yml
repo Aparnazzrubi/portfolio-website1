@@ -4,7 +4,10 @@ on:
   push:
     branches:
       - main
-  workflow_dispatch:
+  
+env:
+  SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+  channel: GithubIntegration-Testworkspace
 
 jobs:
   build:
@@ -13,3 +16,20 @@ jobs:
     steps:
     - name: Checkout Code
       uses: actions/checkout@v2
+
+    - name: Notify Slack channel on success
+      if: success()
+      run: |
+        curl -X POST -H 'Content-type: application/json' \
+        --data '{"text":"✅ *Deployment Succeeded*\nRepository: ${{ github.repository }}\nBranch: ${{ github.ref }}\nCommit: ${{ github.sha }}"}' \
+        ${{ secrets.SLACK_WEBHOOK_URL }}
+
+    - name: Notify Slack channel on failure
+      if: failure()
+      run: |
+        curl -X POST -H 'Content-type: application/json' \
+        --data '{"text":"❌ *Deployment Failed*\nRepository: ${{ github.repository }}\nBranch: ${{ github.ref }}\nCommit: ${{ github.sha }}"}' \
+        ${{ secrets.SLACK_WEBHOOK_URL }}
+
+      
+     
